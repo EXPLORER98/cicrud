@@ -86,10 +86,11 @@ class User extends CI_Controller
 
         $data['user'] = $this->user_model->getUser($id);
         $data['id'] = $id;
-        $this->load->view('user/edit_user',$data);
-    
+        $this->load->view('user/edit_user', $data);
+
     }
-    function update($id){
+    function update($id)
+    {
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
@@ -105,8 +106,8 @@ class User extends CI_Controller
                 $this->upload->initialize($config);
                 if ($this->upload->do_upload('image')) {
 
-                    if(file_exists("./uploads/".$old_filename)){
-                        unlink("./uploads/".$old_filename);
+                    if (file_exists("./uploads/" . $old_filename)) {
+                        unlink("./uploads/" . $old_filename);
                     }
                     $this->session->set_flashdata('message', '<div class="alert alert-success">Record has been saved successfully.</div>');
                 } else {
@@ -118,10 +119,12 @@ class User extends CI_Controller
                 $image = $old_filename;
             }
 
-            $username = $this->input->post('username');
-            $email = $this->input->post('email');
-            $phone = $this->input->post('phone');
-            $address = $this->input->post('address');
+            // $username = $this->input->post('username');
+            
+            $username = $_POST['username'];
+            $email = $_POST['email'];
+            $phone = $_POST['phone'];
+            $address = $_POST['address'];
             $data = [
                 'username' => $username,
                 'email' => $email,
@@ -155,6 +158,52 @@ class User extends CI_Controller
                 $this->session->set_flashdata('error', 'Error');
                 $this->load->view('user/index');
             }
+        }
+    }
+
+    function updateajax()
+    {
+        $id = $_POST['id'];
+        $username = $_POST['username'];
+        $email = $_POST['email'];
+        $phone = $_POST['phone'];
+        $address = $_POST['address'];
+        $old_filename = $_POST['old_image'];
+
+        if (!empty($_FILES['image']['name'])) {
+
+            $config['upload_path'] = './uploads/';
+            $config['allowed_types'] = 'jpg|jpeg|png|gif';
+            $config['file_name'] = $_FILES['image']['name'];
+            $this->load->library('upload', $config);
+            $this->upload->initialize($config);
+            if ($this->upload->do_upload('image')) {
+
+                if (file_exists("./uploads/" . $old_filename)) {
+                    unlink("./uploads/" . $old_filename);
+                }
+            } else {
+                return $error = array('error' => $this->upload->display_errors());
+            }
+            $image = $_FILES['image']['name'];
+        } else {
+            $image = $old_filename;
+        }
+
+
+        $data = [
+            'username' => $username,
+            'email' => $email,
+            'phone' => $phone,
+            'address' => $address,
+            'image' => $image
+        ];
+
+        $status = $this->user_model->updateUser($data, $id);
+        if ($status == true) {
+            return 'success';
+        } else {
+            return 'failed';
         }
     }
 
